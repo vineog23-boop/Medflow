@@ -1,0 +1,133 @@
+package br.com.medflow.exam.application;
+
+import br.com.medflow.exam.domain.ExamOrder;
+import br.com.medflow.exam.domain.enums.ExamPriority;
+import br.com.medflow.exam.persistence.ExamOrderRepository;
+import br.com.medflow.exam.application.dto.CreateExamRequestDto;
+import br.com.medflow.exam.application.dto.UpdateExamRequestDto;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+class ExamOrderServiceTest {
+
+    private final ExamOrderRepository repository = mock(ExamOrderRepository.class);
+    private final ExamOrderService service = new ExamOrderService(repository);
+
+    @Test
+    void deveCriarOrdemESalvarNoRepository() {
+        UUID patientId = UUID.randomUUID();
+        when(repository.save(any(ExamOrder.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        CreateExamRequestDto request = new CreateExamRequestDto(patientId, "HEMOGRAMA", ExamPriority.NORMAL);
+
+        ExamOrder result = service.create(request);
+
+        assertThat(result.getPatientId()).isEqualTo(patientId);
+        assertThat(result.getExamCode()).isEqualTo("HEMOGRAMA");
+        verify(repository).save(any(ExamOrder.class));
+    }
+
+    @Test
+    void deveBuscarOrdemPorId() {
+        UUID id = UUID.randomUUID();
+        ExamOrder examOrder = new ExamOrder(UUID.randomUUID(), "GLICOSE", ExamPriority.NORMAL);
+        when(repository.findById(id)).thenReturn(Optional.of(examOrder));
+
+        ExamOrder result = service.findById(id);
+
+        assertThat(result).isSameAs(examOrder);
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoOrdemNaoExistir() {
+        UUID id = UUID.randomUUID();
+        when(repository.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.findById(id))
+                .isInstanceOf(ExamOrderNotFoundException.class);
+    }
+
+    @Test
+    void deveListarOrdens() {
+        List<ExamOrder> examOrders = List.of(
+                new ExamOrder(UUID.randomUUID(), "HEMOGRAMA", ExamPriority.NORMAL)
+        );
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        Page<ExamOrder> page = new PageImpl<>(examOrders, pageRequest, 1);
+        when(repository.findAll(pageRequest)).thenReturn(page);
+
+        Page<ExamOrder> result = service.findAll(pageRequest);
+
+        assertThat(result.getContent()).containsExactlyElementsOf(examOrders);
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getNumber()).isZero();
+        assertThat(result.getSize()).isEqualTo(10);
+    }
+
+    @Test
+    void deveAtualizarOrdem() {
+        UUID id = UUID.randomUUID();
+        UUID patientId = UUID.randomUUID();
+        ExamOrder examOrder = new ExamOrder(UUID.randomUUID(), "GLICOSE", ExamPriority.NORMAL);
+        UpdateExamRequestDto request = new UpdateExamRequestDto(patientId, "HEMOGRAMA", ExamPriority.URGENT);
+        when(repository.findById(id)).thenReturn(Optional.of(examOrder));
+        when(repository.save(examOrder)).thenReturn(examOrder);
+
+        ExamOrder result = service.update(id, request);
+
+        assertThat(result.getPatientId()).isEqualTo(patientId);
+        assertThat(result.getExamCode()).isEqualTo("HEMOGRAMA");
+        assertThat(result.getPriority()).isEqualTo(ExamPriority.URGENT);
+        verify(repository).save(examOrder);
+    }
+
+    @Test
+    void naoDeveAtualizarOrdemInexistente() {
+        UUID id = UUID.randomUUID();
+        when(repository.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.update(
+                id,
+                new UpdateExamRequestDto(UUID.randomUUID(), "HEMOGRAMA", ExamPriority.NORMAL)
+        )).isInstanceOf(ExamOrderNotFoundException.class);
+
+        verify(repository, never()).save(any(ExamOrder.class));
+    }
+
+    @Test
+    void deveExcluirOrdem() {
+        UUID id = UUID.randomUUID();
+        ExamOrder examOrder = new ExamOrder(UUID.randomUUID(), "GLICOSE", ExamPriority.NORMAL);
+        when(repository.findById(id)).thenReturn(Optional.of(examOrder));
+
+        service.delete(id);
+
+        verify(repository).delete(examOrder);
+    }
+
+    @Test
+    void naoDeveExcluirOrdemInexistente() {
+        UUID id = UUID.randomUUID();
+        when(repository.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.delete(id))
+                .isInstanceOf(ExamOrderNotFoundException.class);
+
+        verify(repository, never()).delete(any(ExamOrder.class));
+    }
+}

@@ -1,5 +1,7 @@
 package br.com.medflow.exam.domain;
 
+import br.com.medflow.exam.domain.enums.ExamPriority;
+import br.com.medflow.exam.domain.enums.ExamStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,8 +17,8 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "exam_requests")
-public class ExamRequest {
+@Table(name = "exam_orders")
+public class ExamOrder {
 
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.UUID)
@@ -50,11 +52,11 @@ public class ExamRequest {
     @Column(name = "version", nullable = false)
     private Long version;
 
-    protected ExamRequest() {
+    protected ExamOrder() {
         // Construtor usado pelo JPA para reconstruir registros do banco.
     }
 
-    public ExamRequest(UUID patientId, String examCode, ExamPriority priority) {
+    public ExamOrder(UUID patientId, String examCode, ExamPriority priority) {
         if (patientId == null) {
             throw new IllegalArgumentException("Paciente deve ser informado");
         }
@@ -109,5 +111,26 @@ public class ExamRequest {
 
     public Long getVersion() {
         return version;
+    }
+
+    public void update(UUID patientId, String examCode, ExamPriority priority) {
+        if (patientId == null) {
+            throw new IllegalArgumentException("Paciente deve ser informado");
+        }
+
+        if (examCode == null || examCode.isBlank()) {
+            throw new IllegalArgumentException("Código do exame deve ser informado");
+        }
+
+        this.patientId = patientId;
+        this.examCode = examCode.trim();
+
+        if (priority == null) {
+            this.priority = ExamPriority.NORMAL;
+        } else {
+            this.priority = priority;
+        }
+
+        this.updatedAt = Instant.now();
     }
 }

@@ -1,0 +1,31 @@
+package br.com.medflow.exam.web.dto;
+
+import br.com.medflow.exam.domain.ExamOrder;
+import br.com.medflow.exam.domain.enums.ExamPriority;
+import br.com.medflow.exam.domain.enums.ExamStatus;
+
+import java.time.Instant;
+import java.util.UUID;
+
+public record ExamOrderResponseDto(
+        UUID id,
+        UUID patientId,
+        String examCode,
+        ExamPriority priority,
+        ExamStatus status,
+        Instant createdAt,
+        Instant updatedAt
+) {
+
+    public ExamOrderResponseDto(ExamOrder examOrder) {
+        this(
+                examOrder.getId(),
+                examOrder.getPatientId(),
+                examOrder.getExamCode(),
+                examOrder.getPriority(),
+                examOrder.getStatus(),
+                examOrder.getCreatedAt(),
+                examOrder.getUpdatedAt()
+        );
+    }
+}
