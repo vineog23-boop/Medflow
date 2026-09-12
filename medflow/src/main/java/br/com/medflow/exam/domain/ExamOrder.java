@@ -57,13 +57,7 @@ public class ExamOrder {
     }
 
     public ExamOrder(UUID patientId, String examCode, ExamPriority priority) {
-        if (patientId == null) {
-            throw new IllegalArgumentException("Paciente deve ser informado");
-        }
-
-        if (examCode == null || examCode.isBlank()) {
-            throw new IllegalArgumentException("Código do exame deve ser informado");
-        }
+        validateData(patientId, examCode);
 
         this.patientId = patientId;
         this.examCode = examCode.trim();
@@ -114,13 +108,7 @@ public class ExamOrder {
     }
 
     public void update(UUID patientId, String examCode, ExamPriority priority) {
-        if (patientId == null) {
-            throw new IllegalArgumentException("Paciente deve ser informado");
-        }
-
-        if (examCode == null || examCode.isBlank()) {
-            throw new IllegalArgumentException("Código do exame deve ser informado");
-        }
+        validateData(patientId, examCode);
 
         this.patientId = patientId;
         this.examCode = examCode.trim();
@@ -132,5 +120,15 @@ public class ExamOrder {
         }
 
         this.updatedAt = Instant.now();
+    }
+
+    private static void validateData(UUID patientId, String examCode) {
+        if (patientId == null) {
+            throw new IllegalArgumentException("Paciente deve ser informado");
+        }
+
+        if (examCode == null || examCode.isBlank()) {
+            throw new IllegalArgumentException("Código do exame deve ser informado");
+        }
     }
 }

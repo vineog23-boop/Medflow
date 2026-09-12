@@ -3,6 +3,7 @@ package br.com.medflow.patient.domain;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -122,5 +123,49 @@ class PatientEntityTest {
         ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Data de nascimento não pode estar no futuro");
+    }
+
+    @Test
+    void deveAtualizarOsDadosDoPaciente() {
+        // Arrange: cria um paciente e guarda o instante original de atualização.
+        PatientEntity patient = new PatientEntity(
+                "Nome Antigo",
+                "529.982.247-25",
+                LocalDate.of(2000, 1, 15)
+        );
+        Instant previousUpdatedAt = patient.getUpdatedAt();
+
+        // Act: aplica os novos dados por meio do comportamento da própria entidade.
+        patient.update(
+                "  Nome Atualizado  ",
+                "  111.444.777-35  ",
+                LocalDate.of(1999, 5, 20)
+        );
+
+        // Assert: os dados mudam, os textos são normalizados e a criação é preservada.
+        assertThat(patient.getFullName()).isEqualTo("Nome Atualizado");
+        assertThat(patient.getCpf()).isEqualTo("111.444.777-35");
+        assertThat(patient.getBirthDate()).isEqualTo(LocalDate.of(1999, 5, 20));
+        assertThat(patient.getCreatedAt()).isNotNull();
+        assertThat(patient.getUpdatedAt()).isAfterOrEqualTo(previousUpdatedAt);
+    }
+
+    @Test
+    void naoDeveAtualizarPacienteComNomeEmBranco() {
+        // Arrange: cria uma entidade válida antes de tentar uma alteração inválida.
+        PatientEntity patient = new PatientEntity(
+                "Vinícius Oliveira",
+                "529.982.247-25",
+                LocalDate.of(2000, 1, 15)
+        );
+
+        // Act e Assert: a mesma regra do cadastro também protege a atualização.
+        assertThatThrownBy(() -> patient.update(
+                "   ",
+                "111.444.777-35",
+                LocalDate.of(1999, 5, 20)
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Nome completo deve ser informado");
     }
 }

@@ -1,7 +1,9 @@
 package br.com.medflow.exam.application;
 
 import br.com.medflow.exam.application.dto.CreateExamRequestDto;
+import br.com.medflow.exam.application.dto.ExamOrderResponseDto;
 import br.com.medflow.exam.application.dto.UpdateExamRequestDto;
+import br.com.medflow.exam.application.exeception.ExamOrderNotFoundException;
 import br.com.medflow.exam.domain.ExamOrder;
 import br.com.medflow.exam.persistence.ExamOrderRepository;
 import org.springframework.data.domain.Page;
@@ -19,7 +21,7 @@ public class ExamOrderService {
         this.examOrderRepository = examOrderRepository;
     }
 
-    public ExamOrder create(CreateExamRequestDto request) {
+    public ExamOrderResponseDto create(CreateExamRequestDto request) {
         ExamOrder examOrder = new ExamOrder(
                 request.patientId(),
                 request.examCode(),
@@ -27,21 +29,24 @@ public class ExamOrderService {
         );
 
         ExamOrder savedExamOrder = examOrderRepository.save(examOrder);
-        return savedExamOrder;
+        return new ExamOrderResponseDto(savedExamOrder);
     }
 
-    public ExamOrder findById(UUID id) {
-        return examOrderRepository.findById(id)
+    public ExamOrderResponseDto findById(UUID id) {
+        ExamOrder examOrder = examOrderRepository.findById(id)
                 .orElseThrow(() -> new ExamOrderNotFoundException(id));
+
+        return new ExamOrderResponseDto(examOrder);
     }
 
-    public Page<ExamOrder> findAll(Pageable pageable) {
-        Page<ExamOrder> examOrders = examOrderRepository.findAll(pageable);
-        return examOrders;
+    public Page<ExamOrderResponseDto> findAll(Pageable pageable) {
+        return examOrderRepository.findAll(pageable)
+                .map(ExamOrderResponseDto::new);
     }
 
-    public ExamOrder update(UUID id, UpdateExamRequestDto request) {
-        ExamOrder examOrder = findById(id);
+    public ExamOrderResponseDto update(UUID id, UpdateExamRequestDto request) {
+        ExamOrder examOrder = examOrderRepository.findById(id)
+                .orElseThrow(() -> new ExamOrderNotFoundException(id));
 
         examOrder.update(
                 request.patientId(),
@@ -49,11 +54,14 @@ public class ExamOrderService {
                 request.priority()
         );
 
-        return examOrderRepository.save(examOrder);
+        ExamOrder updatedExamOrder = examOrderRepository.save(examOrder);
+        return new ExamOrderResponseDto(updatedExamOrder);
     }
 
     public void delete(UUID id) {
-        ExamOrder examOrder = findById(id);
+        ExamOrder examOrder = examOrderRepository.findById(id)
+                .orElseThrow(() -> new ExamOrderNotFoundException(id));
+
         examOrderRepository.delete(examOrder);
     }
 }

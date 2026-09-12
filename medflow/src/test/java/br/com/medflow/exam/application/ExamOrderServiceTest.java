@@ -1,10 +1,12 @@
 package br.com.medflow.exam.application;
 
+import br.com.medflow.exam.application.dto.CreateExamRequestDto;
+import br.com.medflow.exam.application.dto.ExamOrderResponseDto;
+import br.com.medflow.exam.application.dto.UpdateExamRequestDto;
+import br.com.medflow.exam.application.exception.ExamOrderNotFoundException;
 import br.com.medflow.exam.domain.ExamOrder;
 import br.com.medflow.exam.domain.enums.ExamPriority;
 import br.com.medflow.exam.persistence.ExamOrderRepository;
-import br.com.medflow.exam.application.dto.CreateExamRequestDto;
-import br.com.medflow.exam.application.dto.UpdateExamRequestDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -35,10 +37,10 @@ class ExamOrderServiceTest {
 
         CreateExamRequestDto request = new CreateExamRequestDto(patientId, "HEMOGRAMA", ExamPriority.NORMAL);
 
-        ExamOrder result = service.create(request);
+        ExamOrderResponseDto result = service.create(request);
 
-        assertThat(result.getPatientId()).isEqualTo(patientId);
-        assertThat(result.getExamCode()).isEqualTo("HEMOGRAMA");
+        assertThat(result.patientId()).isEqualTo(patientId);
+        assertThat(result.examCode()).isEqualTo("HEMOGRAMA");
         verify(repository).save(any(ExamOrder.class));
     }
 
@@ -48,9 +50,10 @@ class ExamOrderServiceTest {
         ExamOrder examOrder = new ExamOrder(UUID.randomUUID(), "GLICOSE", ExamPriority.NORMAL);
         when(repository.findById(id)).thenReturn(Optional.of(examOrder));
 
-        ExamOrder result = service.findById(id);
+        ExamOrderResponseDto result = service.findById(id);
 
-        assertThat(result).isSameAs(examOrder);
+        assertThat(result.patientId()).isEqualTo(examOrder.getPatientId());
+        assertThat(result.examCode()).isEqualTo("GLICOSE");
     }
 
     @Test
@@ -71,9 +74,10 @@ class ExamOrderServiceTest {
         Page<ExamOrder> page = new PageImpl<>(examOrders, pageRequest, 1);
         when(repository.findAll(pageRequest)).thenReturn(page);
 
-        Page<ExamOrder> result = service.findAll(pageRequest);
+        Page<ExamOrderResponseDto> result = service.findAll(pageRequest);
 
-        assertThat(result.getContent()).containsExactlyElementsOf(examOrders);
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().examCode()).isEqualTo("HEMOGRAMA");
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getNumber()).isZero();
         assertThat(result.getSize()).isEqualTo(10);
@@ -88,11 +92,11 @@ class ExamOrderServiceTest {
         when(repository.findById(id)).thenReturn(Optional.of(examOrder));
         when(repository.save(examOrder)).thenReturn(examOrder);
 
-        ExamOrder result = service.update(id, request);
+        ExamOrderResponseDto result = service.update(id, request);
 
-        assertThat(result.getPatientId()).isEqualTo(patientId);
-        assertThat(result.getExamCode()).isEqualTo("HEMOGRAMA");
-        assertThat(result.getPriority()).isEqualTo(ExamPriority.URGENT);
+        assertThat(result.patientId()).isEqualTo(patientId);
+        assertThat(result.examCode()).isEqualTo("HEMOGRAMA");
+        assertThat(result.priority()).isEqualTo(ExamPriority.URGENT);
         verify(repository).save(examOrder);
     }
 

@@ -1,4 +1,4 @@
-package br.com.medflow.exam.application;
+package br.com.medflow.exam.application.exception;
 
 import java.util.UUID;
 

@@ -2,8 +2,8 @@ package br.com.medflow.exam.web;
 
 import br.com.medflow.exam.application.ExamOrderService;
 import br.com.medflow.exam.application.dto.CreateExamRequestDto;
+import br.com.medflow.exam.application.dto.ExamOrderResponseDto;
 import br.com.medflow.exam.application.dto.UpdateExamRequestDto;
-import br.com.medflow.exam.web.dto.ExamOrderResponseDto;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,37 +34,36 @@ public class ExamOrderController {
     public ResponseEntity<Page<ExamOrderResponseDto>> findAll(
             @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
 
-        Page<ExamOrderResponseDto> response = examOrderService.findAll(pageable)
-                .map(examOrder -> new ExamOrderResponseDto(examOrder));
+        Page<ExamOrderResponseDto> response = examOrderService.findAll(pageable);
 
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ExamOrderResponseDto> findById(@PathVariable UUID id) {
-        ExamOrderResponseDto response = new ExamOrderResponseDto(examOrderService.findById(id));
+        ExamOrderResponseDto response = examOrderService.findById(id);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping
-    public ResponseEntity<ExamOrderResponseDto> createExamOrder(
+    public ResponseEntity<ExamOrderResponseDto> create(
             @Valid @RequestBody CreateExamRequestDto request) {
 
-        ExamOrderResponseDto response = new ExamOrderResponseDto(examOrderService.create(request));
+        ExamOrderResponseDto response = examOrderService.create(request);
         return ResponseEntity.status(201).body(response);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ExamOrderResponseDto> updateExamOrder(
+    public ResponseEntity<ExamOrderResponseDto> update(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateExamRequestDto request) {
 
-        ExamOrderResponseDto response = new ExamOrderResponseDto(examOrderService.update(id, request));
+        ExamOrderResponseDto response = examOrderService.update(id, request);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteExamOrder(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         examOrderService.delete(id);
         return ResponseEntity.noContent().build();
     }

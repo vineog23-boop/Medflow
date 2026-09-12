@@ -56,7 +56,27 @@ public class PatientEntity {
     }
 
     public PatientEntity(String fullName, String cpf, LocalDate birthDate) {
+        validateData(fullName, cpf, birthDate);
 
+        this.fullName = fullName.trim();
+        this.cpf = cpf.trim();
+        this.birthDate = birthDate;
+
+        Instant now = Instant.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    public void update(String fullName, String cpf, LocalDate birthDate) {
+        validateData(fullName, cpf, birthDate);
+
+        this.fullName = fullName.trim();
+        this.cpf = cpf.trim();
+        this.birthDate = birthDate;
+        this.updatedAt = Instant.now();
+    }
+
+    private static void validateData(String fullName, String cpf, LocalDate birthDate) {
         if (fullName == null || fullName.isBlank()) {
             throw new IllegalArgumentException("Nome completo deve ser informado");
         }
@@ -73,15 +93,6 @@ public class PatientEntity {
             throw new IllegalArgumentException(
                     "Data de nascimento não pode estar no futuro");
         }
-
-        this.fullName = fullName.trim();
-        this.cpf = cpf.trim();
-        this.birthDate = birthDate;
-
-        Instant now = Instant.now();
-        this.createdAt = now;
-        this.updatedAt = now;
-
     }
 
     public UUID getId() {

@@ -56,4 +56,42 @@ class ExamOrderTest {
         assertThatThrownBy(() -> new ExamOrder(UUID.randomUUID(), "  ", ExamPriority.NORMAL))
                 .isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void naoDeveAtualizarOrdemSemPaciente() {
+        // Arrange: cria uma ordem válida antes de tentar uma atualização inválida.
+        ExamOrder examOrder = new ExamOrder(
+                UUID.randomUUID(),
+                "HEMOGRAMA",
+                ExamPriority.NORMAL
+        );
+
+        // Act e Assert: a atualização deve aplicar a mesma regra usada na criação.
+        assertThatThrownBy(() -> examOrder.update(
+                null,
+                "GLICOSE",
+                ExamPriority.URGENT
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Paciente deve ser informado");
+    }
+
+    @Test
+    void naoDeveAtualizarOrdemComCodigoVazio() {
+        // Arrange: cria uma ordem válida antes de tentar uma atualização inválida.
+        ExamOrder examOrder = new ExamOrder(
+                UUID.randomUUID(),
+                "HEMOGRAMA",
+                ExamPriority.NORMAL
+        );
+
+        // Act e Assert: espaços não representam um código de exame válido.
+        assertThatThrownBy(() -> examOrder.update(
+                UUID.randomUUID(),
+                "   ",
+                ExamPriority.URGENT
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Código do exame deve ser informado");
+    }
 }
