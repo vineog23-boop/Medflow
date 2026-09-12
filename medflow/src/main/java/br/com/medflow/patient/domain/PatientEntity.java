@@ -28,7 +28,7 @@ public class PatientEntity {
 
     @NotBlank
     @Size(max = 150)
-    @Column(name = "full_name", nullable = false)
+    @Column(name = "full_name", nullable = false, length = 150)
     private String fullName;
 
     @NotBlank
@@ -79,6 +79,11 @@ public class PatientEntity {
     private static void validateData(String fullName, String cpf, LocalDate birthDate) {
         if (fullName == null || fullName.isBlank()) {
             throw new IllegalArgumentException("Nome completo deve ser informado");
+        }
+
+        if (fullName.trim().length() > 150) {
+            throw new IllegalArgumentException(
+                    "Nome completo deve ter no máximo 150 caracteres");
         }
 
         if (cpf == null || cpf.isBlank()) {

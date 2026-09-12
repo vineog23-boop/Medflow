@@ -75,6 +75,18 @@ class PatientEntityTest {
     }
 
     @Test
+    void naoDeveCriarPacienteComNomeMaiorQueCentoECinquentaCaracteres() {
+        // Act e Assert: 151 caracteres excedem o limite aceito pela entidade e pela coluna.
+        assertThatThrownBy(() -> new PatientEntity(
+                "A".repeat(151),
+                "529.982.247-25",
+                LocalDate.of(2000, 1, 15)
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Nome completo deve ter no máximo 150 caracteres");
+    }
+
+    @Test
     void naoDeveCriarPacienteSemCpf() {
         // Act e Assert: o CPF é obrigatório para criar o paciente.
         assertThatThrownBy(() -> new PatientEntity(
@@ -167,5 +179,24 @@ class PatientEntityTest {
         ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Nome completo deve ser informado");
+    }
+
+    @Test
+    void naoDeveAtualizarPacienteComNomeMaiorQueCentoECinquentaCaracteres() {
+        // Arrange: cria um paciente válido antes de tentar uma atualização inválida.
+        PatientEntity patient = new PatientEntity(
+                "Vinícius Oliveira",
+                "529.982.247-25",
+                LocalDate.of(2000, 1, 15)
+        );
+
+        // Act e Assert: a atualização deve respeitar o mesmo limite aplicado no cadastro.
+        assertThatThrownBy(() -> patient.update(
+                "A".repeat(151),
+                "111.444.777-35",
+                LocalDate.of(1999, 5, 20)
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Nome completo deve ter no máximo 150 caracteres");
     }
 }

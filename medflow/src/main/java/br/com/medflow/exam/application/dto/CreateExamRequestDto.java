@@ -8,8 +8,10 @@ import jakarta.validation.constraints.Size;
 import java.util.UUID;
 
 public record CreateExamRequestDto(
-        @NotNull UUID patientId,
-        @NotBlank @Size(max = 50) String examCode,
+        @NotNull(message = "Paciente deve ser informado") UUID patientId,
+        @NotBlank(message = "Código do exame deve ser informado")
+        @Size(max = 50, message = "Código do exame deve ter no máximo 50 caracteres")
+        String examCode,
         ExamPriority priority
 ) {
 }

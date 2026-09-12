@@ -58,6 +58,18 @@ class ExamOrderTest {
     }
 
     @Test
+    void naoDeveCriarOrdemComCodigoMaiorQueCinquentaCaracteres() {
+        // Act e Assert: 51 caracteres ultrapassam o limite compartilhado com a API e o banco.
+        assertThatThrownBy(() -> new ExamOrder(
+                UUID.randomUUID(),
+                "A".repeat(51),
+                ExamPriority.NORMAL
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Código do exame deve ter no máximo 50 caracteres");
+    }
+
+    @Test
     void naoDeveAtualizarOrdemSemPaciente() {
         // Arrange: cria uma ordem válida antes de tentar uma atualização inválida.
         ExamOrder examOrder = new ExamOrder(
@@ -93,5 +105,24 @@ class ExamOrderTest {
         ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Código do exame deve ser informado");
+    }
+
+    @Test
+    void naoDeveAtualizarOrdemComCodigoMaiorQueCinquentaCaracteres() {
+        // Arrange: cria uma ordem válida antes de testar a fronteira na atualização.
+        ExamOrder examOrder = new ExamOrder(
+                UUID.randomUUID(),
+                "HEMOGRAMA",
+                ExamPriority.NORMAL
+        );
+
+        // Act e Assert: a atualização deve preservar a mesma invariante da criação.
+        assertThatThrownBy(() -> examOrder.update(
+                UUID.randomUUID(),
+                "A".repeat(51),
+                ExamPriority.URGENT
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Código do exame deve ter no máximo 50 caracteres");
     }
 }

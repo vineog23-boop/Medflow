@@ -75,6 +75,36 @@ public class ExamOrder {
         this.updatedAt = now;
     }
 
+    public void update(UUID patientId, String examCode, ExamPriority priority) {
+        validateData(patientId, examCode);
+
+        this.patientId = patientId;
+        this.examCode = examCode.trim();
+
+        if (priority == null) {
+            this.priority = ExamPriority.NORMAL;
+        } else {
+            this.priority = priority;
+        }
+
+        this.updatedAt = Instant.now();
+    }
+
+    private static void validateData(UUID patientId, String examCode) {
+        if (patientId == null) {
+            throw new IllegalArgumentException("Paciente deve ser informado");
+        }
+
+        if (examCode == null || examCode.isBlank()) {
+            throw new IllegalArgumentException("Código do exame deve ser informado");
+        }
+
+        if (examCode.trim().length() > 50) {
+            throw new IllegalArgumentException(
+                    "Código do exame deve ter no máximo 50 caracteres");
+        }
+    }
+
     public UUID getId() {
         return id;
     }
@@ -105,30 +135,5 @@ public class ExamOrder {
 
     public Long getVersion() {
         return version;
-    }
-
-    public void update(UUID patientId, String examCode, ExamPriority priority) {
-        validateData(patientId, examCode);
-
-        this.patientId = patientId;
-        this.examCode = examCode.trim();
-
-        if (priority == null) {
-            this.priority = ExamPriority.NORMAL;
-        } else {
-            this.priority = priority;
-        }
-
-        this.updatedAt = Instant.now();
-    }
-
-    private static void validateData(UUID patientId, String examCode) {
-        if (patientId == null) {
-            throw new IllegalArgumentException("Paciente deve ser informado");
-        }
-
-        if (examCode == null || examCode.isBlank()) {
-            throw new IllegalArgumentException("Código do exame deve ser informado");
-        }
     }
 }
