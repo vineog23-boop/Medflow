@@ -4,11 +4,11 @@
 
 **Goal:** Implementar o catálogo de definições de exame no monólito Medflow, com criação, consulta, atualização e desativação sem exclusão física.
 
-**Architecture:** `ExamDefinition` pertence ao módulo `exam` e segue a organização atual `domain -> persistence -> application -> web`. A comunicação permanece local; esta entrega não usa OpenFeign, RabbitMQ, API Gateway ou infraestrutura nova.
+**Architecture:** `ExamDefinition` pertence à fatia vertical `exam.definition`, enquanto as ordens existentes pertencem a `exam.order`. Dentro de cada funcionalidade permanece a separação `domain -> persistence -> application -> web`; a comunicação continua local e esta entrega não usa OpenFeign, RabbitMQ, API Gateway ou infraestrutura nova.
 
 **Tech Stack:** Java 21, Spring Boot 4.1.1, Spring Data JPA, Bean Validation, Spring MVC, JUnit 5, Mockito e MockMvc.
 
-**Spec:** `docs/superpowers/specs/2026-09-12-exam-definition-design.md`
+**Spec:** `docs/superpowers/specs/2026-09-12-exam-definition-design.md` e `docs/superpowers/specs/2026-09-12-exam-package-organization-design.md`
 
 ## Global Constraints
 
@@ -20,6 +20,8 @@
 - Usar `ProblemDetail` RFC 9457 para `404` e `409`.
 - Preservar `output/`, `tmp/` e alterações não relacionadas.
 - Executar comandos Maven dentro de `medflow/`.
+- Organizar ordens em `exam.order` e definições em `exam.definition`.
+- Não permitir acesso direto de `order.application` a `definition.persistence`.
 
 ## Execution Override
 
@@ -28,25 +30,124 @@
 - A feature não estará pronta até os testes de domínio, aplicação, web e erros passarem.
 - Vinícius será o driver; o agente atuará como navigator e liberará um micro-passo por vez.
 
+## Progresso atual
+
+- Entidade `ExamDefinition`, enum `SampleType`, método `deactivate()` e testes
+  de domínio concluídos no commit `ab5074e`.
+- `ExamDefinitionRepository` e o esqueleto de `ExamDefinitionService` foram
+  iniciados pelo usuário e ainda não estão commitados.
+- A reorganização da Task 0 deve acontecer antes de continuar o Repository.
+
 ---
 
 ## File Structure
 
-- `SampleType.java`: tipos de amostra aceitos pelo catálogo.
-- `ExamDefinition.java`: estado e invariantes da definição de exame.
-- `ExamDefinitionRepository.java`: persistência e consulta de duplicidade.
-- DTOs: contratos de criação, atualização e resposta.
-- Exceções: ausência da definição e conflito de código.
-- `ExamDefinitionService.java`: casos de uso do catálogo.
+- `exam/order/`: fatia vertical das ordens já existentes.
+- `exam/definition/domain/enums/SampleType.java`: tipos de amostra aceitos.
+- `exam/definition/domain/ExamDefinition.java`: estado e invariantes.
+- `exam/definition/persistence/ExamDefinitionRepository.java`: persistência e consulta de duplicidade.
+- `exam/definition/application/dto/`: contratos de criação, atualização e resposta.
+- `exam/definition/application/exception/`: ausência da definição e conflito de código.
+- `exam/definition/application/ExamDefinitionService.java`: casos de uso do catálogo.
 - `ProblemTypes.java` e `GlobalExceptionHandler.java`: contrato RFC 9457.
-- `ExamDefinitionController.java`: endpoints `/api/v1/exam-definitions`.
+- `exam/definition/web/ExamDefinitionController.java`: endpoints `/api/v1/exam-definitions`.
 - Testes equivalentes em `src/test/java`.
+
+### Task 0: Reorganizar o módulo `exam` por funcionalidade
+
+**Files:**
+- Move: classes de ordem de `br/com/medflow/exam/{application,domain,persistence,web}` para `br/com/medflow/exam/order/`
+- Move: classes de definição existentes para `br/com/medflow/exam/definition/`
+- Modify: `medflow/src/main/java/br/com/medflow/shared/web/error/GlobalExceptionHandler.java`
+- Modify: `medflow/src/test/java/br/com/medflow/MedflowApplicationTests.java`
+- Modify: `medflow/src/test/java/br/com/medflow/shared/web/error/GlobalExceptionHandlerTest.java`
+
+**Interfaces:**
+- Consumes: classes existentes de `ExamOrder` e `ExamDefinition`.
+- Produces: pacotes `exam.order` e `exam.definition` sem mudança de comportamento.
+
+- [ ] **Step 1: Mover a produção de ordens pelo Refactor do IntelliJ**
+
+Mover, preservando os subpacotes técnicos:
+
+```text
+ExamOrder.java                  -> exam.order.domain
+ExamPriority.java              -> exam.order.domain.enums
+ExamStatus.java                -> exam.order.domain.enums
+ExamOrderRepository.java       -> exam.order.persistence
+ExamOrderService.java          -> exam.order.application
+CreateExamRequestDto.java      -> exam.order.application.dto
+UpdateExamRequestDto.java      -> exam.order.application.dto
+ExamOrderResponseDto.java      -> exam.order.application.dto
+ExamOrderNotFoundException.java -> exam.order.application.exception
+ExamOrderController.java       -> exam.order.web
+```
+
+No IntelliJ, usar `Refactor -> Move` para que declarações de pacote e imports
+sejam atualizados em conjunto.
+
+- [ ] **Step 2: Mover a produção de definições**
+
+```text
+ExamDefinition.java            -> exam.definition.domain
+SampleType.java                -> exam.definition.domain.enums
+ExamDefinitionRepository.java  -> exam.definition.persistence
+ExamDefinitionService.java     -> exam.definition.application
+```
+
+Em `ExamDefinitionService.java`, manter a anotação e adicionar o import que
+está faltando:
+
+```java
+import org.springframework.stereotype.Service;
+```
+
+- [ ] **Step 3: Mover os testes para pacotes equivalentes**
+
+```text
+ExamOrderTest.java                  -> exam.order.domain
+ExamOrderServiceTest.java           -> exam.order.application
+ExamOrderRequestValidationTest.java -> exam.order.application.dto
+ExamDefinitionTest.java             -> exam.definition.domain
+```
+
+Atualizar também os imports de `ExamOrderRepository` em
+`MedflowApplicationTests` e de `ExamOrderNotFoundException` no handler e em
+seu teste.
+
+- [ ] **Step 4: Confirmar que os pacotes antigos não são mais referenciados**
+
+```powershell
+rg -n "br\.com\.medflow\.exam\.(application|domain|persistence|web)" medflow/src
+```
+
+Expected: nenhum resultado. Referências válidas começam com
+`br.com.medflow.exam.order` ou `br.com.medflow.exam.definition`.
+
+- [ ] **Step 5: Executar a suíte completa**
+
+```powershell
+cd medflow
+.\mvnw.cmd test
+```
+
+Expected: `BUILD SUCCESS`, 61 testes executados e nenhuma falha, erro ou teste
+ignorado.
+
+- [ ] **Step 6: Criar o commit da reorganização**
+
+```powershell
+cd ..
+git add -- medflow/src/main/java/br/com/medflow/exam medflow/src/main/java/br/com/medflow/shared/web/error/GlobalExceptionHandler.java medflow/src/test/java/br/com/medflow/exam medflow/src/test/java/br/com/medflow/MedflowApplicationTests.java medflow/src/test/java/br/com/medflow/shared/web/error/GlobalExceptionHandlerTest.java docs/superpowers/plans/2026-09-12-exam-definition.md
+git diff --cached --check
+git commit -m "refactor(exam): organiza pacotes por funcionalidade"
+```
 
 ### Task 1: Entidade e tipo de amostra
 
 **Files:**
-- Create: `medflow/src/main/java/br/com/medflow/exam/domain/enums/SampleType.java`
-- Create: `medflow/src/main/java/br/com/medflow/exam/domain/ExamDefinition.java`
+- Move/Create: `medflow/src/main/java/br/com/medflow/exam/definition/domain/enums/SampleType.java`
+- Move/Create: `medflow/src/main/java/br/com/medflow/exam/definition/domain/ExamDefinition.java`
 
 **Interfaces:**
 - Consumes: tipos Jakarta Persistence e Bean Validation já presentes no projeto.
@@ -55,7 +156,7 @@
 - [ ] **Step 1: Criar o enum de amostra**
 
 ```java
-package br.com.medflow.exam.domain.enums;
+package br.com.medflow.exam.definition.domain.enums;
 
 public enum SampleType {
     BLOOD,
@@ -109,12 +210,11 @@ private Long version;
 
 ```java
 public ExamDefinition(String code, String name, SampleType sampleType) {
-    String normalizedCode = normalizeCode(code);
-    String normalizedName = normalizeName(name);
-    validate(normalizedCode, normalizedName, sampleType);
+    validateCode(code);
+    validateNameAndSampleType(name, sampleType);
 
-    this.code = normalizedCode;
-    this.name = normalizedName;
+    this.code = code.trim().toUpperCase(Locale.ROOT);
+    this.name = name.trim();
     this.sampleType = sampleType;
     this.active = true;
 
@@ -122,33 +222,21 @@ public ExamDefinition(String code, String name, SampleType sampleType) {
     this.createdAt = now;
     this.updatedAt = now;
 }
-
-private static String normalizeCode(String code) {
-    return code == null ? null : code.trim().toUpperCase(Locale.ROOT);
-}
-
-private static String normalizeName(String name) {
-    return name == null ? null : name.trim();
-}
 ```
 
-O método `validate` deve lançar `IllegalArgumentException` com mensagens
+Os métodos de validação devem lançar `IllegalArgumentException` com mensagens
 específicas para código vazio, código maior que 50, nome vazio, nome maior que
 150 e tipo de amostra nulo.
 
 ```java
-private static void validate(
-        String code,
-        String name,
-        SampleType sampleType) {
+private static void validateCode(String code) {
     if (code == null || code.isBlank()) {
         throw new IllegalArgumentException("Código do exame deve ser informado");
     }
-    if (code.length() > 50) {
+    if (code.trim().length() > 50) {
         throw new IllegalArgumentException(
                 "Código do exame deve ter no máximo 50 caracteres");
     }
-    validateNameAndSampleType(name, sampleType);
 }
 
 private static void validateNameAndSampleType(
@@ -157,7 +245,7 @@ private static void validateNameAndSampleType(
     if (name == null || name.isBlank()) {
         throw new IllegalArgumentException("Nome do exame deve ser informado");
     }
-    if (name.length() > 150) {
+    if (name.trim().length() > 150) {
         throw new IllegalArgumentException(
                 "Nome do exame deve ter no máximo 150 caracteres");
     }
@@ -171,15 +259,14 @@ private static void validateNameAndSampleType(
 
 ```java
 public void update(String name, SampleType sampleType) {
-    String normalizedName = normalizeName(name);
-    validateNameAndSampleType(normalizedName, sampleType);
-    this.name = normalizedName;
+    validateNameAndSampleType(name, sampleType);
+    this.name = name.trim();
     this.sampleType = sampleType;
     this.updatedAt = Instant.now();
 }
 
 public void deactivate() {
-    if (!active) {
+    if (!this.active) {
         return;
     }
     this.active = false;
@@ -235,7 +322,7 @@ Expected: `BUILD SUCCESS`.
 ### Task 2: Repository
 
 **Files:**
-- Create: `medflow/src/main/java/br/com/medflow/exam/persistence/ExamDefinitionRepository.java`
+- Move/Create: `medflow/src/main/java/br/com/medflow/exam/definition/persistence/ExamDefinitionRepository.java`
 
 **Interfaces:**
 - Consumes: `ExamDefinition` e `UUID`.
@@ -244,9 +331,9 @@ Expected: `BUILD SUCCESS`.
 - [ ] **Step 1: Criar o Repository**
 
 ```java
-package br.com.medflow.exam.persistence;
+package br.com.medflow.exam.definition.persistence;
 
-import br.com.medflow.exam.domain.ExamDefinition;
+import br.com.medflow.exam.definition.domain.ExamDefinition;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
@@ -271,12 +358,12 @@ da query derivada será validado com PostgreSQL na etapa de persistência.
 ### Task 3: DTOs, exceções e Service
 
 **Files:**
-- Create: `medflow/src/main/java/br/com/medflow/exam/application/dto/CreateExamDefinitionRequest.java`
-- Create: `medflow/src/main/java/br/com/medflow/exam/application/dto/UpdateExamDefinitionRequest.java`
-- Create: `medflow/src/main/java/br/com/medflow/exam/application/dto/ExamDefinitionResponse.java`
-- Create: `medflow/src/main/java/br/com/medflow/exam/application/exception/ExamDefinitionNotFoundException.java`
-- Create: `medflow/src/main/java/br/com/medflow/exam/application/exception/ExamDefinitionCodeConflictException.java`
-- Create: `medflow/src/main/java/br/com/medflow/exam/application/ExamDefinitionService.java`
+- Create: `medflow/src/main/java/br/com/medflow/exam/definition/application/dto/CreateExamDefinitionRequest.java`
+- Create: `medflow/src/main/java/br/com/medflow/exam/definition/application/dto/UpdateExamDefinitionRequest.java`
+- Create: `medflow/src/main/java/br/com/medflow/exam/definition/application/dto/ExamDefinitionResponse.java`
+- Create: `medflow/src/main/java/br/com/medflow/exam/definition/application/exception/ExamDefinitionNotFoundException.java`
+- Create: `medflow/src/main/java/br/com/medflow/exam/definition/application/exception/ExamDefinitionCodeConflictException.java`
+- Move/Create: `medflow/src/main/java/br/com/medflow/exam/definition/application/ExamDefinitionService.java`
 
 **Interfaces:**
 - Consumes: `ExamDefinitionRepository` e DTOs de entrada.
@@ -286,15 +373,23 @@ da query derivada será validado com PostgreSQL na etapa de persistência.
 
 ```java
 public record CreateExamDefinitionRequest(
-        @NotBlank @Size(max = 50) String code,
-        @NotBlank @Size(max = 150) String name,
-        @NotNull SampleType sampleType
+        @NotBlank(message = "Código do exame deve ser informado")
+        @Size(max = 50, message = "Código do exame deve ter no máximo 50 caracteres")
+        String code,
+        @NotBlank(message = "Nome do exame deve ser informado")
+        @Size(max = 150, message = "Nome do exame deve ter no máximo 150 caracteres")
+        String name,
+        @NotNull(message = "Tipo de amostra deve ser informado")
+        SampleType sampleType
 ) {
 }
 
 public record UpdateExamDefinitionRequest(
-        @NotBlank @Size(max = 150) String name,
-        @NotNull SampleType sampleType
+        @NotBlank(message = "Nome do exame deve ser informado")
+        @Size(max = 150, message = "Nome do exame deve ter no máximo 150 caracteres")
+        String name,
+        @NotNull(message = "Tipo de amostra deve ser informado")
+        SampleType sampleType
 ) {
 }
 
@@ -459,7 +554,7 @@ Expected: `BUILD SUCCESS`.
 ### Task 5: Controller
 
 **Files:**
-- Create: `medflow/src/main/java/br/com/medflow/exam/web/ExamDefinitionController.java`
+- Create: `medflow/src/main/java/br/com/medflow/exam/definition/web/ExamDefinitionController.java`
 
 **Interfaces:**
 - Consumes: `ExamDefinitionService` e DTOs.
@@ -530,7 +625,7 @@ Expected: `BUILD SUCCESS`.
 ### Task 6: Testes da entidade
 
 **Files:**
-- Create: `medflow/src/test/java/br/com/medflow/exam/domain/ExamDefinitionTest.java`
+- Move/Create: `medflow/src/test/java/br/com/medflow/exam/definition/domain/ExamDefinitionTest.java`
 
 **Interfaces:**
 - Consumes: API pública de `ExamDefinition`.
@@ -668,7 +763,7 @@ Expected: todos os testes de `ExamDefinitionTest` passam.
 ### Task 7: Testes da Service
 
 **Files:**
-- Create: `medflow/src/test/java/br/com/medflow/exam/application/ExamDefinitionServiceTest.java`
+- Create: `medflow/src/test/java/br/com/medflow/exam/definition/application/ExamDefinitionServiceTest.java`
 
 **Interfaces:**
 - Consumes: `ExamDefinitionService` e Repository simulado.
@@ -825,7 +920,7 @@ Expected: todos os testes de `ExamDefinitionServiceTest` passam.
 ### Task 8: Testes web, erros, documentação e gate final
 
 **Files:**
-- Create: `medflow/src/test/java/br/com/medflow/exam/web/ExamDefinitionControllerTest.java`
+- Create: `medflow/src/test/java/br/com/medflow/exam/definition/web/ExamDefinitionControllerTest.java`
 - Modify: `medflow/src/test/java/br/com/medflow/shared/web/error/GlobalExceptionHandlerTest.java`
 - Modify: `README.md`
 
@@ -1052,6 +1147,6 @@ Expected: nenhum erro de whitespace; `output/` e `tmp/` permanecem sem stage.
 - [ ] **Step 6: Criar o commit da feature**
 
 ```powershell
-git add -- medflow/src/main/java/br/com/medflow/exam medflow/src/main/java/br/com/medflow/shared/web/error medflow/src/test/java/br/com/medflow/exam medflow/src/test/java/br/com/medflow/shared/web/error/GlobalExceptionHandlerTest.java README.md docs/superpowers/plans/2026-09-12-exam-definition.md
+git add -- medflow/src/main/java/br/com/medflow/exam/definition medflow/src/main/java/br/com/medflow/shared/web/error medflow/src/test/java/br/com/medflow/exam/definition medflow/src/test/java/br/com/medflow/shared/web/error/GlobalExceptionHandlerTest.java README.md docs/superpowers/plans/2026-09-12-exam-definition.md
 git commit -m "feat(exam): adiciona catálogo de exames"
 ```
