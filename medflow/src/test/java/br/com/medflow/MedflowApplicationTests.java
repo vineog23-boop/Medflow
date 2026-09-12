@@ -1,5 +1,6 @@
 package br.com.medflow;
 
+import br.com.medflow.exam.definition.persistence.ExamDefinitionRepository;
 import br.com.medflow.exam.order.persistence.ExamOrderRepository;
 import br.com.medflow.patient.persistence.PatientRepository;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,9 @@ class MedflowApplicationTests {
 
 	@MockitoBean
 	private ExamOrderRepository examOrderRepository;
+
+	@MockitoBean
+	private ExamDefinitionRepository examDefinitionRepository;
 
 	@MockitoBean
 	private PatientRepository patientRepository;

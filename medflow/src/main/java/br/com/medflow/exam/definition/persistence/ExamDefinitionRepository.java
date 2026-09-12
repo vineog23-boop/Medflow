@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.UUID;
 
 public interface ExamDefinitionRepository extends JpaRepository<ExamDefinition, UUID> {
+
+    boolean existsByCode(String code);
 }
