@@ -64,7 +64,12 @@ o item físico rastreável. `ExamResult` representa o resultado técnico, que s�
 fica disponível ao paciente após validação e liberação. `Notification` registra
 a tentativa de comunicação; não carrega nem persiste o resultado clínico.
 
-## Serviços e responsabilidades
+## Serviços-alvo e responsabilidades
+
+Os itens desta seção representam as fronteiras de implantação desejadas após
+as extrações. Durante a fase atual, `patient`, `exam`, `laboratory`,
+`notification` e identidade são módulos internos da mesma aplicação Spring
+Boot e compartilham uma única unidade de implantação.
 
 | Serviço | Dados próprios | Responsabilidade |
 | --- | --- | --- |
@@ -78,20 +83,30 @@ a tentativa de comunicação; não carrega nem persiste o resultado clínico.
 `Sample` e `ExamResult` permanecem no mesmo serviço para que o ciclo físico e
 a liberação técnica não dependam de chamadas remotas em cada transição.
 
-Cada serviço é dono exclusivo de seu banco PostgreSQL. Não haverá leitura
-direta, joins nem chaves estrangeiras entre bancos de serviços distintos.
+Durante o monólito haverá um único banco PostgreSQL, com ownership lógico das
+tabelas por módulo. Após a extração, cada serviço será dono exclusivo de seu
+banco; não haverá leitura direta, joins nem chaves estrangeiras entre bancos
+de serviços distintos.
 
 ## Segurança
 
-O `identity-service` usará Spring Authorization Server; JWT não será criado
-manualmente. O gateway e cada serviço de domínio serão Resource Servers e
-validarão assinatura, emissor, expiração e autoridades do token.
+Na fase de monólito, autenticação e autorização serão implementadas em um
+módulo interno de identidade, dentro da aplicação `medflow`. Esse módulo será
+responsável por usuários, papéis, emissão de tokens e configuração do Resource
+Server, mas ainda não será implantado de forma independente.
 
-O JWT conterá o `sub` e as autoridades necessárias. O `patient-service` será
-a fonte do vínculo entre `Patient.id` e o `sub`. Ao consultar resultado, o
-`laboratory-service` deve garantir que o paciente autenticado é o titular e
-que o resultado está em `RELEASED`. Isso impede acesso indevido por alteração
-de identificadores na URL.
+O módulo usará Spring Authorization Server; JWT não será criado manualmente.
+Quando houver extração, ele poderá se tornar o `identity-service`. Nessa fase,
+o gateway e cada serviço de domínio serão Resource Servers e validarão
+assinatura, emissor, expiração e autoridades do token.
+
+O JWT conterá o `sub` e as autoridades necessárias. Durante o monólito, o
+módulo `patient` será a fonte do vínculo entre `Patient.id` e o `sub`; após a
+extração, essa responsabilidade será do `patient-service`. Ao consultar
+resultado, o módulo `laboratory` — ou o futuro `laboratory-service` — deve
+garantir que o paciente autenticado é o titular e que o resultado está em
+`RELEASED`. Isso impede acesso indevido por alteração de identificadores na
+URL.
 
 Chamadas serviço a serviço usarão credencial própria, não token ou senha do
 paciente. Eventos e logs não conterão dados pessoais identificáveis nem valor
@@ -116,8 +131,9 @@ rejeitado, cancelado ou ainda não liberado não é visível ao paciente.
 
 ## Comunicação e consistência
 
-Chamadas HTTP internas são limitadas a leitura e validação, sem escrita
-distribuída. Inicialmente:
+Durante o monólito, módulos colaboram em processo por interfaces Java; não há
+OpenFeign entre pacotes da mesma aplicação. Após as extrações, chamadas HTTP
+internas serão limitadas a leitura e validação, sem escrita distribuída:
 
 - `order-service` consulta `patient-service` para validar o paciente antes de
   criar uma ordem;
@@ -125,11 +141,12 @@ distribuída. Inicialmente:
   a coleta e consulta `patient-service` para resolver titularidade em consultas
   autorizadas.
 
-O projeto usará OpenFeign como adaptador HTTP interno por ser um objetivo de
-aprendizado. O adaptador ficará atrás de uma porta da aplicação, em `client/`,
-para permitir migração futura para Spring HTTP Service Clients sem alterar os
-casos de uso. A documentação do Spring classifica Spring Cloud OpenFeign como
-feature-complete e recomenda HTTP Service Clients para cenários novos.
+Quando surgir a primeira fronteira síncrona remota, o projeto usará OpenFeign
+como adaptador HTTP interno por ser um objetivo de aprendizado. O adaptador
+ficará atrás de uma porta da aplicação, em `client/`, para permitir migração
+futura para Spring HTTP Service Clients sem alterar os casos de uso. A
+documentação do Spring classifica Spring Cloud OpenFeign como feature-complete
+e recomenda HTTP Service Clients para cenários novos.
 
 Fluxos que produzem efeitos em outros serviços usarão RabbitMQ e transactional
 outbox:
@@ -211,15 +228,20 @@ e contratos de API.
 
 ## Operação
 
-O ambiente local será provisionado com Docker Compose: PostgreSQL, RabbitMQ,
-identity service, serviços de domínio e gateway. Cada serviço terá migrations
-Flyway próprias em `src/main/resources/db/migration`. Senhas, URIs e demais
-segredos serão fornecidos por variáveis de ambiente, nunca versionados.
+O Docker Compose será introduzido incrementalmente: PostgreSQL na etapa de
+persistência e RabbitMQ na etapa de mensageria. Gateway e containers de
+serviços serão adicionados apenas quando começar a extração. Durante o
+monólito, a aplicação terá migrations Flyway em
+`src/main/resources/db/migration`; depois, cada serviço extraído terá suas
+próprias migrations. Senhas, URIs e demais segredos serão fornecidos por
+variáveis de ambiente, nunca versionados.
 
-O gateway propagará um `correlationId` para HTTP e eventos. Serviços exporão
-health checks por Actuator. A observabilidade inicial cobrirá logs estruturados,
-identificador de correlação e saúde; tracing distribuído completo pode ser
-adicionado após os fluxos críticos estarem estáveis.
+No monólito, um filtro HTTP gerará o `correlationId`; após sua introdução, o
+gateway passará a criá-lo ou propagá-lo para HTTP e eventos. A aplicação e os
+futuros serviços exporão health checks por Actuator. A observabilidade inicial
+cobrirá logs estruturados, identificador de correlação e saúde; tracing
+distribuído completo pode ser adicionado após os fluxos críticos estarem
+estáveis.
 
 ## Contratos externos e erros
 
@@ -246,20 +268,25 @@ avançará da regra testada para entidade, repositório, aplicação e controlle
 
 ## Roadmap de entregas
 
-1. Consolidar `Patient` e `ExamOrder` no monólito modular, com testes e
-   contratos HTTP consistentes.
+1. Consolidar `Patient` e `ExamOrder`: completar o teste web de ordens,
+   versionar os endpoints sob `/api/v1` e manter a suíte atual verde.
 2. Adicionar PostgreSQL, Flyway e testes com Testcontainers.
-3. Implementar segurança com `identity-service`, JWT, papéis e acesso do
-   paciente ao resultado liberado.
-4. Implementar laboratório: amostra, movimentação, resultado, validação e
+3. Implementar `ExamDefinition` e validar a existência de paciente e exame ao
+   criar uma ordem.
+4. Implementar identidade e Spring Security dentro do monólito, com JWT e
+   papéis; após existir resultado, proteger também a consulta do paciente.
+5. Implementar laboratório: amostra, movimentação, resultado, validação e
    liberação.
-5. Adicionar RabbitMQ, outbox, idempotência, retry e DLQ.
-6. Reorganizar para o monorepo Maven multi-módulo e extrair progressivamente
-   `patient-service`, `order-service`, `laboratory-service` e
-   `notification-service`, começando por uma fronteira já estável.
-7. Introduzir OpenFeign nos contratos internos extraídos, com timeouts,
-   autenticação de serviço e circuit breaker.
-8. Fechar a operação local com Docker Compose, Actuator e OpenAPI.
+6. Implementar `Notification` e adicionar RabbitMQ, outbox, idempotência,
+   retry e DLQ.
+7. Verificar prontidão para extração: regras e contratos estáveis, testes de
+   integração, ownership de dados e observabilidade mínima.
+8. Reorganizar para o monorepo Maven multi-módulo e extrair primeiro o
+   `notification-service`, que se comunica por eventos e tem baixo acoplamento.
+9. Extrair as demais fronteiras uma por vez. Introduzir OpenFeign apenas nas
+   leituras e validações realmente remotas, com timeout, autenticação de
+   serviço e circuit breaker; adicionar gateway quando houver mais de uma
+   aplicação exposta.
 
 ## Fora de escopo inicial
 
