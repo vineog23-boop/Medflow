@@ -5,6 +5,8 @@ import br.com.medflow.patient.application.dto.PatientDtoResponse;
 import br.com.medflow.patient.application.exception.PatientNotFoundException;
 import br.com.medflow.patient.domain.PatientEntity;
 import br.com.medflow.patient.persistence.PatientRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -35,6 +37,11 @@ public class PatientService {
                 .orElseThrow(() -> new PatientNotFoundException(id));
 
         return new PatientDtoResponse(patient);
+    }
+
+    public Page<PatientDtoResponse> findAll(Pageable pageable) {
+        return patientRepository.findAll(pageable)
+                .map(PatientDtoResponse::new);
     }
 
     public PatientDtoResponse update(UUID id, PatientDtoRequest request) {

@@ -21,6 +21,16 @@
 - Não criar novos testes com Mockito ou mocks de Service e Repository.
 - Preservar alterações não commitadas já existentes no workspace.
 
+## Execution Override
+
+- Em 12/09/2026, o usuário optou explicitamente por implementar primeiro e
+  escrever os testes depois. Portanto, as etapas RED deste plano não serão
+  executadas como TDD; os mesmos comportamentos serão cobertos após o código de
+  produção estar pronto.
+- Os novos testes continuarão sem Mockito e sem mocks de Service ou Repository.
+- A implementação será feita diretamente na branch `main`, com autorização
+  explícita do usuário, preservando as alterações locais existentes.
+
 ---
 
 ## File Structure
@@ -247,7 +257,8 @@ protected ResponseEntity<Object> handleMethodArgumentNotValid(
 
 Mapear `FieldError` para `ValidationError`, usar fallback `Valor inválido` quando
 `defaultMessage` for nula, ordenar por `pointer`, definir a propriedade
-`errors`, e responder com `HttpStatus.UNPROCESSABLE_ENTITY`.
+`errors`, e responder com `HttpStatus.UNPROCESSABLE_CONTENT`, nome adotado pelo
+Spring 7 para o status HTTP `422`.
 
 Criar `toJsonPointer(String field)` separando propriedades aninhadas por ponto
 e escapando cada token nesta ordem:

@@ -3,7 +3,7 @@ package br.com.medflow.exam.application;
 import br.com.medflow.exam.application.dto.CreateExamRequestDto;
 import br.com.medflow.exam.application.dto.ExamOrderResponseDto;
 import br.com.medflow.exam.application.dto.UpdateExamRequestDto;
-import br.com.medflow.exam.application.exeception.ExamOrderNotFoundException;
+import br.com.medflow.exam.application.exception.ExamOrderNotFoundException;
 import br.com.medflow.exam.domain.ExamOrder;
 import br.com.medflow.exam.persistence.ExamOrderRepository;
 import org.springframework.data.domain.Page;

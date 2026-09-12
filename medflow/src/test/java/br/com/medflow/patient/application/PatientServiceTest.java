@@ -6,8 +6,12 @@ import br.com.medflow.patient.application.exception.PatientNotFoundException;
 import br.com.medflow.patient.domain.PatientEntity;
 import br.com.medflow.patient.persistence.PatientRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -68,6 +72,26 @@ class PatientServiceTest {
         // Assert: a service não expõe a entidade de persistência.
         assertThat(response.fullName()).isEqualTo("Vinícius Oliveira");
         assertThat(response.cpf()).isEqualTo("529.982.247-25");
+    }
+
+    @Test
+    void deveListarPacientesPaginadosComoDto() {
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        PatientEntity patient = new PatientEntity(
+                "Vinícius Oliveira",
+                "529.982.247-25",
+                LocalDate.of(2000, 1, 15)
+        );
+        when(repository.findAll(pageRequest))
+                .thenReturn(new PageImpl<>(List.of(patient), pageRequest, 1));
+
+        Page<PatientDtoResponse> response = service.findAll(pageRequest);
+
+        assertThat(response.getContent()).hasSize(1);
+        assertThat(response.getContent().getFirst().fullName()).isEqualTo("Vinícius Oliveira");
+        assertThat(response.getTotalElements()).isEqualTo(1);
+        assertThat(response.getNumber()).isZero();
+        assertThat(response.getSize()).isEqualTo(10);
     }
 
     @Test

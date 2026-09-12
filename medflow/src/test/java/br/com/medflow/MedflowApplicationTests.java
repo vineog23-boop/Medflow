@@ -1,10 +1,23 @@
 package br.com.medflow;
 
+import br.com.medflow.exam.persistence.ExamOrderRepository;
+import br.com.medflow.patient.persistence.PatientRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@SpringBootTest
+@SpringBootTest(properties = "spring.autoconfigure.exclude="
+		+ "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration,"
+		+ "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration,"
+		+ "org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration,"
+		+ "org.springframework.boot.data.jpa.autoconfigure.DataJpaRepositoriesAutoConfiguration")
 class MedflowApplicationTests {
+
+	@MockitoBean
+	private ExamOrderRepository examOrderRepository;
+
+	@MockitoBean
+	private PatientRepository patientRepository;
 
 	@Test
 	void contextLoads() {
