@@ -1,13 +1,17 @@
-# Medflow
+<h1 align="center">🩺 Medflow</h1>
+<p align="center">Pacientes e ordens de exame com domínio, contratos HTTP e testes.</p>
+<p align="center">
+  <img src="https://img.shields.io/badge/Java-21-2563EB?style=flat-square" alt="Java: 21">
+  <img src="https://img.shields.io/badge/Spring%20Boot-4.1.1-0F766E?style=flat-square" alt="Spring Boot: 4.1.1">
+  <img src="https://img.shields.io/badge/Banco-PostgreSQL%20pendente-475569?style=flat-square" alt="Banco: PostgreSQL pendente">
+  <img src="https://img.shields.io/badge/Status-Em%20desenvolvimento-475569?style=flat-square" alt="Status: Em desenvolvimento">
+</p>
 
-![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.1-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-configura%C3%A7%C3%A3o_pendente-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
-![Maven](https://img.shields.io/badge/Maven-Wrapper-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)
-![Status](https://img.shields.io/badge/status-em_desenvolvimento-yellow?style=for-the-badge)
-![Licença](https://img.shields.io/badge/licen%C3%A7a-n%C3%A3o_definida-lightgrey?style=for-the-badge)
+<p align="center"><a href="#visão-geral">Visão geral</a> · <a href="#funcionalidades">Funcionalidades</a> · <a href="#como-rodar">Execução</a> · <a href="#testes">Testes</a></p>
 
-> 🚧 Em desenvolvimento
+---
+
+## Visão geral
 
 Medflow é uma API REST para apoiar o fluxo de pacientes e ordens de exames. O checkpoint atual implementa o CRUD desses dois recursos, com contratos HTTP validados, persistência por JPA e respostas de erro padronizadas em RFC 9457.
 
@@ -47,28 +51,26 @@ Medflow é uma API REST para apoiar o fluxo de pacientes e ordens de exames. O c
 
 O repositório ainda não contém migrations Flyway, configuração de `DataSource` nem `Dockerfile`/`compose.yaml`. Portanto, a API não possui uma execução local completa e reproduzível neste checkpoint. Esses artefatos devem ser adicionados antes de apontar a aplicação para PostgreSQL ou publicar instruções de containerização.
 
-### Sem Docker
+### Preparar o projeto
 
-Após a infraestrutura ser configurada, clone o projeto e entre no módulo Maven:
+Com JDK 21 instalado, clone o repositório e entre no módulo Maven:
 
 ```bash
 git clone https://github.com/vineog23-boop/Medflow.git
 cd Medflow/medflow
 ```
 
-No Windows:
-
-```powershell
-.\mvnw.cmd test
-.\mvnw.cmd spring-boot:run
-```
-
-No Linux ou macOS:
+Execute os testes sem depender de um banco externo:
 
 ```bash
-./mvnw test
-./mvnw spring-boot:run
+bash ./mvnw test
 ```
+
+No Windows: `.\mvnw.cmd test`.
+
+O teste de contexto exclui as autoconfigurações de persistência e usa repositórios simulados. Os testes não comprovam uma conexão PostgreSQL funcionando.
+
+**Somente após configurar datasource, migrations e acesso HTTP**, inicie a aplicação com `bash ./mvnw spring-boot:run` (Windows: `.\mvnw.cmd spring-boot:run`).
 
 Com um datasource válido configurado, a aplicação usará a porta padrão `8080`.
 
@@ -77,6 +79,8 @@ Com um datasource válido configurado, a aplicação usará a porta padrão `808
 Ainda não há suporte a Docker neste checkpoint. Quando o `compose.yaml` estiver disponível, esta seção deverá conter os serviços, variáveis de ambiente e o comando de inicialização correspondentes.
 
 ## Endpoints
+
+Rotas implementadas nos controllers. Os exemplos abaixo descrevem os contratos e dependem da infraestrutura e das regras de acesso configuradas para uso real. Todos os dados dos exemplos são fictícios.
 
 | Método | Endpoint | Descrição |
 | --- | --- | --- |
@@ -116,6 +120,8 @@ Resposta esperada (`201 Created`):
 ```
 
 ### Criar ordem de exame
+
+Substitua o `patientId` pelo UUID de um paciente já cadastrado.
 
 ```bash
 curl -X POST http://localhost:8080/exam-orders \
@@ -187,9 +193,11 @@ medflow/
 
 Os testes cobrem regras das entidades, serviços, controllers e a tradução de exceções para o contrato HTTP. Execute a suíte a partir de `medflow/`:
 
-```powershell
-.\mvnw.cmd test
+```bash
+bash ./mvnw test
 ```
+
+No Windows: `.\mvnw.cmd test`. A cobertura HTTP existente inclui o controller de pacientes e o handler de erros; ampliar os testes do controller de ordens é uma próxima melhoria.
 
 ## Decisões e desafios técnicos
 
@@ -209,7 +217,7 @@ Os testes cobrem regras das entidades, serviços, controllers e a tradução de 
 
 ## Autor
 
-Vinícius Oliveira — [GitHub](https://github.com/vineog23-boop)
+**Vinícius Oliveira** · [GitHub](https://github.com/vineog23-boop) · [LinkedIn](https://www.linkedin.com/in/vinícius-oliveira-1770b7306)
 
 ## Licença
 
