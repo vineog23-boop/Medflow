@@ -150,26 +150,50 @@ exporá o resultado.
 
 ## Estrutura do repositório
 
-O destino é um monorepo Maven multi-módulo:
+O estágio atual permanecerá um monólito modular em um único módulo Maven:
 
 ```text
 Medflow/
-├── api-gateway/
-├── identity-service/
-├── patient-service/
-├── order-service/
-├── laboratory-service/
-├── notification-service/
-├── event-contracts/
-├── infra/
+├── medflow/
+│   ├── pom.xml
+│   └── src/main/java/br/com/medflow/
+│       ├── patient/
+│       ├── exam/
+│       ├── laboratory/
+│       ├── notification/
+│       ├── workflow/
+│       └── shared/
 └── docs/superpowers/
+```
+
+Os módulos `patient` e `exam` são os primeiros já implementados. `exam` é o
+precursor do futuro `order-service`; `laboratory` e `notification` serão
+preenchidos no mesmo monólito antes de serem candidatos à extração.
+
+Quando uma fronteira tiver regras, testes e contratos estáveis, o repositório
+evoluirá para um monorepo Maven multi-módulo:
+
+```text
+Medflow/
+├── apps/
+│   └── medflow-monolith/       # aplicação existente durante a transição
+├── services/
+│   ├── patient-service/        # criado somente na extração correspondente
+│   ├── order-service/
+│   ├── laboratory-service/
+│   └── notification-service/
+├── libs/
+│   └── event-contracts/
+├── infra/
+├── docs/
+└── pom.xml                     # agregador Maven
 ```
 
 `event-contracts` conterá somente envelopes e contratos versionados de
 mensagens. É proibido compartilhar entidades JPA, repositórios, exceções ou
 regras de negócio nesse módulo.
 
-Dentro de cada serviço de domínio, a organização será:
+Dentro de cada módulo de domínio, a organização será:
 
 ```text
 domain/        entidades, value objects e regras
@@ -230,8 +254,9 @@ avançará da regra testada para entidade, repositório, aplicação e controlle
 4. Implementar laboratório: amostra, movimentação, resultado, validação e
    liberação.
 5. Adicionar RabbitMQ, outbox, idempotência, retry e DLQ.
-6. Extrair progressivamente `patient-service`, `order-service`,
-   `laboratory-service` e `notification-service`.
+6. Reorganizar para o monorepo Maven multi-módulo e extrair progressivamente
+   `patient-service`, `order-service`, `laboratory-service` e
+   `notification-service`, começando por uma fronteira já estável.
 7. Introduzir OpenFeign nos contratos internos extraídos, com timeouts,
    autenticação de serviço e circuit breaker.
 8. Fechar a operação local com Docker Compose, Actuator e OpenAPI.
