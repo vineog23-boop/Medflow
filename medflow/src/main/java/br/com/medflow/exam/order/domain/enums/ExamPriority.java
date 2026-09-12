@@ -1,4 +1,4 @@
-package br.com.medflow.exam.domain.enums;
+package br.com.medflow.exam.order.domain.enums;
 
 public enum ExamPriority {
     NORMAL,

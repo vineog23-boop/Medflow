@@ -34,9 +34,9 @@
 
 - Entidade `ExamDefinition`, enum `SampleType`, método `deactivate()` e testes
   de domínio concluídos no commit `ab5074e`.
-- `ExamDefinitionRepository` e o esqueleto de `ExamDefinitionService` foram
-  iniciados pelo usuário e ainda não estão commitados.
-- A reorganização da Task 0 deve acontecer antes de continuar o Repository.
+- A reorganização da Task 0 foi concluída; `ExamDefinitionRepository` e o
+  esqueleto de `ExamDefinitionService` estão nos novos pacotes.
+- O próximo passo é completar o Repository na Task 2.
 
 ---
 
@@ -66,7 +66,7 @@
 - Consumes: classes existentes de `ExamOrder` e `ExamDefinition`.
 - Produces: pacotes `exam.order` e `exam.definition` sem mudança de comportamento.
 
-- [ ] **Step 1: Mover a produção de ordens pelo Refactor do IntelliJ**
+- [x] **Step 1: Mover a produção de ordens pelo Refactor do IntelliJ**
 
 Mover, preservando os subpacotes técnicos:
 
@@ -86,7 +86,7 @@ ExamOrderController.java       -> exam.order.web
 No IntelliJ, usar `Refactor -> Move` para que declarações de pacote e imports
 sejam atualizados em conjunto.
 
-- [ ] **Step 2: Mover a produção de definições**
+- [x] **Step 2: Mover a produção de definições**
 
 ```text
 ExamDefinition.java            -> exam.definition.domain
@@ -102,7 +102,7 @@ está faltando:
 import org.springframework.stereotype.Service;
 ```
 
-- [ ] **Step 3: Mover os testes para pacotes equivalentes**
+- [x] **Step 3: Mover os testes para pacotes equivalentes**
 
 ```text
 ExamOrderTest.java                  -> exam.order.domain
@@ -115,7 +115,7 @@ Atualizar também os imports de `ExamOrderRepository` em
 `MedflowApplicationTests` e de `ExamOrderNotFoundException` no handler e em
 seu teste.
 
-- [ ] **Step 4: Confirmar que os pacotes antigos não são mais referenciados**
+- [x] **Step 4: Confirmar que os pacotes antigos não são mais referenciados**
 
 ```powershell
 rg -n "br\.com\.medflow\.exam\.(application|domain|persistence|web)" medflow/src
@@ -124,7 +124,7 @@ rg -n "br\.com\.medflow\.exam\.(application|domain|persistence|web)" medflow/src
 Expected: nenhum resultado. Referências válidas começam com
 `br.com.medflow.exam.order` ou `br.com.medflow.exam.definition`.
 
-- [ ] **Step 5: Executar a suíte completa**
+- [x] **Step 5: Executar a suíte completa**
 
 ```powershell
 cd medflow
@@ -134,7 +134,7 @@ cd medflow
 Expected: `BUILD SUCCESS`, 61 testes executados e nenhuma falha, erro ou teste
 ignorado.
 
-- [ ] **Step 6: Criar o commit da reorganização**
+- [x] **Step 6: Criar o commit da reorganização**
 
 ```powershell
 cd ..

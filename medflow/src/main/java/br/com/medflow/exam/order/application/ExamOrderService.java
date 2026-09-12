@@ -1,11 +1,11 @@
-package br.com.medflow.exam.application;
+package br.com.medflow.exam.order.application;
 
-import br.com.medflow.exam.application.dto.CreateExamRequestDto;
-import br.com.medflow.exam.application.dto.ExamOrderResponseDto;
-import br.com.medflow.exam.application.dto.UpdateExamRequestDto;
-import br.com.medflow.exam.application.exception.ExamOrderNotFoundException;
-import br.com.medflow.exam.domain.ExamOrder;
-import br.com.medflow.exam.persistence.ExamOrderRepository;
+import br.com.medflow.exam.order.application.dto.CreateExamRequestDto;
+import br.com.medflow.exam.order.application.dto.ExamOrderResponseDto;
+import br.com.medflow.exam.order.application.dto.UpdateExamRequestDto;
+import br.com.medflow.exam.order.application.exception.ExamOrderNotFoundException;
+import br.com.medflow.exam.order.domain.ExamOrder;
+import br.com.medflow.exam.order.persistence.ExamOrderRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

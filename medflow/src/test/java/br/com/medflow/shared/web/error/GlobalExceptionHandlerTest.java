@@ -1,6 +1,6 @@
 package br.com.medflow.shared.web.error;
 
-import br.com.medflow.exam.application.exception.ExamOrderNotFoundException;
+import br.com.medflow.exam.order.application.exception.ExamOrderNotFoundException;
 import br.com.medflow.patient.application.dto.PatientDtoRequest;
 import br.com.medflow.patient.application.exception.PatientNotFoundException;
 import jakarta.validation.Valid;

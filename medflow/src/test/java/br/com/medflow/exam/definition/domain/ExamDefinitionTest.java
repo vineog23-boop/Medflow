@@ -1,6 +1,6 @@
-package br.com.medflow.exam.domain;
+package br.com.medflow.exam.definition.domain;
 
-import br.com.medflow.exam.domain.enums.SampleType;
+import br.com.medflow.exam.definition.domain.enums.SampleType;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

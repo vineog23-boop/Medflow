@@ -1,6 +1,6 @@
-package br.com.medflow.exam.domain;
+package br.com.medflow.exam.definition.domain;
 
-import br.com.medflow.exam.domain.enums.SampleType;
+import br.com.medflow.exam.definition.domain.enums.SampleType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

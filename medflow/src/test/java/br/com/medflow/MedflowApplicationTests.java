@@ -1,6 +1,6 @@
 package br.com.medflow;
 
-import br.com.medflow.exam.persistence.ExamOrderRepository;
+import br.com.medflow.exam.order.persistence.ExamOrderRepository;
 import br.com.medflow.patient.persistence.PatientRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

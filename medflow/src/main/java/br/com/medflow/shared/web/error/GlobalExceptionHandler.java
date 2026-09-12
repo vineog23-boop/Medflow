@@ -1,6 +1,6 @@
 package br.com.medflow.shared.web.error;
 
-import br.com.medflow.exam.application.exception.ExamOrderNotFoundException;
+import br.com.medflow.exam.order.application.exception.ExamOrderNotFoundException;
 import br.com.medflow.patient.application.exception.PatientNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;

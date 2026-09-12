@@ -1,7 +1,7 @@
-package br.com.medflow.exam.domain;
+package br.com.medflow.exam.order.domain;
 
-import br.com.medflow.exam.domain.enums.ExamPriority;
-import br.com.medflow.exam.domain.enums.ExamStatus;
+import br.com.medflow.exam.order.domain.enums.ExamPriority;
+import br.com.medflow.exam.order.domain.enums.ExamStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

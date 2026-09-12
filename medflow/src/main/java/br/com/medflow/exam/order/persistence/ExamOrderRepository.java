@@ -1,6 +1,6 @@
-package br.com.medflow.exam.persistence;
+package br.com.medflow.exam.order.persistence;
 
-import br.com.medflow.exam.domain.ExamOrder;
+import br.com.medflow.exam.order.domain.ExamOrder;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;

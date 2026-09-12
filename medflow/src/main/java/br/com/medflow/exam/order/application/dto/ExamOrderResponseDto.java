@@ -1,8 +1,8 @@
-package br.com.medflow.exam.application.dto;
+package br.com.medflow.exam.order.application.dto;
 
-import br.com.medflow.exam.domain.ExamOrder;
-import br.com.medflow.exam.domain.enums.ExamPriority;
-import br.com.medflow.exam.domain.enums.ExamStatus;
+import br.com.medflow.exam.order.domain.ExamOrder;
+import br.com.medflow.exam.order.domain.enums.ExamPriority;
+import br.com.medflow.exam.order.domain.enums.ExamStatus;
 
 import java.time.Instant;
 import java.util.UUID;

@@ -1,4 +1,4 @@
-package br.com.medflow.exam.application.dto;
+package br.com.medflow.exam.order.application.dto;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;

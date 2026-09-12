@@ -1,4 +1,4 @@
-package br.com.medflow.exam.domain.enums;
+package br.com.medflow.exam.definition.domain.enums;
 
 public enum SampleType {
 
