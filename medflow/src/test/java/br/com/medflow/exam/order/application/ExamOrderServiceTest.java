@@ -1,8 +1,8 @@
 package br.com.medflow.exam.order.application;
 
-import br.com.medflow.exam.order.application.dto.CreateExamRequestDto;
-import br.com.medflow.exam.order.application.dto.ExamOrderResponseDto;
-import br.com.medflow.exam.order.application.dto.UpdateExamRequestDto;
+import br.com.medflow.exam.order.application.dto.request.CreateExamRequestDto;
+import br.com.medflow.exam.order.application.dto.response.ExamOrderResponseDto;
+import br.com.medflow.exam.order.application.dto.request.UpdateExamRequestDto;
 import br.com.medflow.exam.order.application.exception.ExamOrderNotFoundException;
 import br.com.medflow.exam.order.domain.ExamOrder;
 import br.com.medflow.exam.order.domain.enums.ExamPriority;

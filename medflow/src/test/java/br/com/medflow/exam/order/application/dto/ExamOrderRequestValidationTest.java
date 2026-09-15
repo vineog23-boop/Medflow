@@ -1,5 +1,7 @@
 package br.com.medflow.exam.order.application.dto;
 
+import br.com.medflow.exam.order.application.dto.request.CreateExamRequestDto;
+import br.com.medflow.exam.order.application.dto.request.UpdateExamRequestDto;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;

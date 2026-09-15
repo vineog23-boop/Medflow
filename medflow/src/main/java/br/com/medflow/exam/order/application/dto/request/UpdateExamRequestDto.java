@@ -1,4 +1,4 @@
-package br.com.medflow.exam.order.application.dto;
+package br.com.medflow.exam.order.application.dto.request;
 
 import br.com.medflow.exam.order.domain.enums.ExamPriority;
 import jakarta.validation.constraints.NotBlank;

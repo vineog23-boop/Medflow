@@ -1,9 +1,9 @@
 package br.com.medflow.exam.order.web;
 
 import br.com.medflow.exam.order.application.ExamOrderService;
-import br.com.medflow.exam.order.application.dto.CreateExamRequestDto;
-import br.com.medflow.exam.order.application.dto.ExamOrderResponseDto;
-import br.com.medflow.exam.order.application.dto.UpdateExamRequestDto;
+import br.com.medflow.exam.order.application.dto.request.CreateExamRequestDto;
+import br.com.medflow.exam.order.application.dto.response.ExamOrderResponseDto;
+import br.com.medflow.exam.order.application.dto.request.UpdateExamRequestDto;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

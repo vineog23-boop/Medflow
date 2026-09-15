@@ -1,4 +1,4 @@
-package br.com.medflow.exam.order.application.dto;
+package br.com.medflow.exam.order.application.dto.response;
 
 import br.com.medflow.exam.order.domain.ExamOrder;
 import br.com.medflow.exam.order.domain.enums.ExamPriority;
